@@ -147,7 +147,7 @@ public:
     {
         cxx_diagnostics_enabled() = false;
         // Parse the compiler options.
-        auto cxx_command = csound->strarg2name(csound, (char *)0, S_compiler_command->data, (char *)"", 1);
+        auto cxx_command = csoundac_string_arg(S_compiler_command);
         std::vector<const char*> args;
         std::vector<std::string> tokens;
         tokenize(cxx_command, ' ', tokens);
@@ -158,9 +158,9 @@ public:
             args.push_back(tokens[i].c_str());
         }
         //std::fprintf(stderr, "CxxCompile::init: line %d\n", __LINE__);
-        auto entry_point = csound->strarg2name(csound, (char *)0, S_entry_point->data, (char *)"", 1);
+        auto entry_point =csoundac_string_arg(S_entry_point);
         // Create a temporary file containing the source code.
-        auto source_code = csound->strarg2name(csound, (char *)0, S_source_code->data, (char *)"", 1);
+        auto source_code = csoundac_string_arg(S_source_code);
         char filepath[0x500];
         {
             std::lock_guard lock(get_mutex());
@@ -192,7 +192,7 @@ public:
             // module.
             if (S_dynamic_link_libraries != nullptr) {
                 std::vector<std::string> dynamic_link_library_names;
-                auto dynamic_link_libraries = csound->strarg2name(csound, (char *)0, S_dynamic_link_libraries->data, (char *)"", 1);
+                auto dynamic_link_libraries = csoundac_string_arg(S_dynamic_link_libraries);
                 tokenize(dynamic_link_libraries, ' ', dynamic_link_library_names);
                 for (const auto &dynamic_link_library_name : dynamic_link_library_names) {
                     void *module_handle = nullptr;
@@ -220,7 +220,7 @@ public:
             }
 #endif
             loaded_modules().push_back(module_handle);
-            csound_main_t entry_point_symbol = (csound_main_t) csound->GetLibrarySymbol(module_handle, entry_point);
+            csound_main_t entry_point_symbol = (csound_main_t) csoundac_get_symbol(module_handle, entry_point);
             if (cxx_diagnostics_enabled()) {
                 csound->Message(csound, "####### cxx_compile: module_filepath:    %s\n", module_filepath);
                 csound->Message(csound, "####### cxx_compile: module_handle:      %p\n", module_handle);
@@ -275,7 +275,7 @@ public:
         // efficient.
         for (auto module_handle : loaded_modules()) {
             if (cxx_diagnostics_enabled()) csound->Message(csound, "####### cxx_invoke::init: library handle:          %p\n", module_handle);
-            auto invokable_factory = (CxxInvokable *(*)()) csound->GetLibrarySymbol(module_handle, invokable_factory_name);
+            auto invokable_factory = (CxxInvokable *(*)()) csoundac_get_symbol(module_handle, invokable_factory_name);
             if (invokable_factory != nullptr) {
                 if (cxx_diagnostics_enabled()) csound->Message(csound, "####### cxx_invoke::init: found invokable factory: %p\n", invokable_factory);
                 cxx_invokable= invokable_factory();
@@ -486,7 +486,9 @@ extern "C" {
                                           (char *)"cxx_compile",
                                           sizeof(CxxCompile),
                                           0,
+#if defined(CSOUND_VERSION_MAJOR) && (CSOUND_VERSION_MAJOR < 7)
                                           1,
+#endif
                                           (char *)"i",
                                           (char *)"SSW",
                                           (int (*)(CSOUND*,void*)) CxxCompile::init_,
@@ -496,7 +498,9 @@ extern "C" {
                                           (char *)"cxx_invoke",
                                           sizeof(CxxInvoke),
                                           0,
+#if defined(CSOUND_VERSION_MAJOR) && (CSOUND_VERSION_MAJOR < 7)
                                           3,
+#endif
                                           (char *)"****************************************",
                                           (char *)"SkN",
                                           (int (*)(CSOUND*,void*)) CxxInvoke::init_,
@@ -506,7 +510,9 @@ extern "C" {
                                           (char *)"cxx_os",
                                           sizeof(CxxOperatingSystem),
                                           0,
+#if defined(CSOUND_VERSION_MAJOR) && (CSOUND_VERSION_MAJOR < 7)
                                           1,
+#endif
                                           (char *)"SS",
                                           (char *)"",
                                           (int (*)(CSOUND*,void*)) CxxOperatingSystem::init_,
@@ -516,7 +522,9 @@ extern "C" {
                                           (char *)"cxx_raise",
                                           sizeof(CxxRaise),
                                           0,
+#if defined(CSOUND_VERSION_MAJOR) && (CSOUND_VERSION_MAJOR < 7)
                                           1,
+#endif
                                           (char *)"",
                                           (char *)"S",
                                           (int (*)(CSOUND*,void*)) CxxRaise::init_,
