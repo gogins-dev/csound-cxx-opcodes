@@ -43,7 +43,7 @@
 #include <csdl.h>
 #include <csignal>
 #include <csound.h>
-#include <OpcodeBase.hpp>
+#include <OpcodeBaseAC.hpp>
 #include <cstdio>
 #include <cstdlib>
 #if (defined(__linux__) || defined(__unix__) || defined(_POSIX_VERSION))
