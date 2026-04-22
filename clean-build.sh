@@ -6,7 +6,7 @@ rm -rf build/*
 mkdir -p build
 cd build
 echo "Configuring..."
-cmake .. -DCMAKE_INSTALL_PREFIX="$HOME"
+cmake ..
 echo "Building..."
 make
 echo "Installing..."
