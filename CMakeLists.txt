@@ -56,6 +56,8 @@ message(STATUS "SHARE_INSTALL_DIR:              ${SHARE_INSTALL_DIR}")
 message(STATUS "CMAKE_INSTALL_PREFIX:           ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "CPACK_PACKAGING_INSTALL_PREFIX: ${CPACK_PACKAGING_INSTALL_PREFIX}")
 
+include("cmake/FindCsoundHomeFirst.cmake")
+
 add_library(csound_cxx SHARED cxx_opcodes.cpp)
 set_target_properties(csound_cxx PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
