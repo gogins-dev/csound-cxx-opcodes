@@ -30,6 +30,8 @@ system and an installed C++ toolchain to execute a C++ compilation. The
 resulting dynamic link libraries are then loaded by Csound, and symbols in them 
 can be invoked by Csound.
 
+This release has been built with, and works only with, Csound version 7.
+
 # cxx_compile
 
 `cxx_compile` - Compile C++ source code into a dynamic link library, and 
