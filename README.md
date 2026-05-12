@@ -311,16 +311,42 @@ cxx_raise S_signal_name
 1. Install the C++ toolchain of your preference.
 
 2. Either download a binary release of these opcodes for your system, or 
-   compile them from source code using:
+   compile from source using the same layout as 
+   [csound-vst3-opcodes](https://github.com/gogins/csound-vst3-opcodes): sources 
+   live under `cxx-opcodes/`, builds use per-OS directories and `dist/`, and 
+   CMake refreshes `FindCsoundHomeFirst.cmake`, `OpcodeBaseAC.hpp`, and 
+   `codesign-check.bash` from the 
+   [csound-ac](https://github.com/gogins-dev/csound-ac) repository at configure time.
+
+   **macOS** (optional: run `./update-csound-ac-files.bash` first to pin those 
+   files without configuring CMake):
+   ```bash
+   ./clean-build-macos.bash
    ```
-   cmake .
-   make
+   For a signed and notarized local archive (Developer ID identity and App Store 
+   Connect API key in the environment, same variables as csound-vst3-opcodes):
+   ```bash
+   export APPLE_CODESIGN_IDENTITY="Developer ID Application: ..."
+   export APPLE_NOTARY_KEY="/path/to/AuthKey_XXX.p8"
+   export APPLE_NOTARY_KEY_ID="..."
+   export APPLE_NOTARY_ISSUER_ID="..."
+   ./clean-build-macos.bash \
+     -DCSOUND_AC_ENABLE_CODESIGN=ON \
+     -DCSOUND_AC_ENABLE_NOTARIZATION=ON
    ```
-   
-3. Copy the `cxx_opcodes.so` file to your `OPCODE6DIR6` directory, or load 
-   it with Csound's `--opcode-lib="./cxx_opcodes.so"` option.
-   
-4. Test by executing `csound cxx_example.csd`. 
+
+   **Linux:** `./clean-build-linux.bash`
+
+   **Windows (MSYS2 MinGW64):** `./clean-build-windows.bash`
+
+   The plugin is staged under `dist/bin/` (`libcsound_cxx.dylib`, `libcsound_cxx.so`, 
+   or `csound_cxx.dll` depending on the platform).
+
+3. Copy the built plugin from `dist/bin/` into your Csound plugin directory 
+   (for example `OPCODE6DIR64` for Csound 7), or load it with 
+   `--opcode-lib=/path/to/libcsound_cxx.dylib` (adjust the filename for your OS).
+
+4. Test by executing `csound examples/cxx_example.csd`.
 
 # Credits
 

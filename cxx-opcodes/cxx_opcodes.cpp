@@ -42,8 +42,7 @@
 #endif
 #include <csdl.h>
 #include <csignal>
-#include <csound.h>
-#include <OpcodeBase.hpp>
+#include <OpcodeBaseAC.hpp>
 #include <cstdio>
 #include <cstdlib>
 #if (defined(__linux__) || defined(__unix__) || defined(_POSIX_VERSION))
@@ -59,6 +58,8 @@
 #if defined(WIN32)
 #include <windows.h>
 #endif
+
+extern "C" const char *csoundGetStringData(CSOUND *csound, STRINGDAT *sdata);
 
 /**
  * Diagnostics are global for all these opcodes, and also for 
@@ -85,6 +86,22 @@ static void *cxx_load_library(const char *library_name) {
 #endif
     std::fprintf(stderr, "####### cxx_load_library: library_name: %s library_handle: %p\n", library_name, library_handle);
     return library_handle;
+}
+
+static void *cxx_get_symbol(void *module_handle, const char *symbol_name) {
+#if defined(WIN32)
+    return (void *) GetProcAddress((HMODULE) module_handle, symbol_name);
+#else
+    return dlsym(module_handle, symbol_name);
+#endif
+}
+
+static std::string cxx_string_from_csound(CSOUND *csound, STRINGDAT *stringdat) {
+    if (stringdat == nullptr) {
+        return {};
+    }
+    const char *resolved = csoundGetStringData(csound, stringdat);
+    return resolved != nullptr ? std::string(resolved) : std::string{};
 }
 
 static void tokenize(std::string const &string_, const char delimiter, std::vector<std::string> &tokens) {
@@ -147,7 +164,7 @@ public:
     {
         cxx_diagnostics_enabled() = false;
         // Parse the compiler options.
-        auto cxx_command = csound->strarg2name(csound, (char *)0, S_compiler_command->data, (char *)"", 1);
+        std::string cxx_command = cxx_string_from_csound(csound, S_compiler_command);
         std::vector<const char*> args;
         std::vector<std::string> tokens;
         tokenize(cxx_command, ' ', tokens);
@@ -158,18 +175,19 @@ public:
             args.push_back(tokens[i].c_str());
         }
         //std::fprintf(stderr, "CxxCompile::init: line %d\n", __LINE__);
-        auto entry_point = csound->strarg2name(csound, (char *)0, S_entry_point->data, (char *)"", 1);
+        std::string entry_point = cxx_string_from_csound(csound, S_entry_point);
         // Create a temporary file containing the source code.
-        auto source_code = csound->strarg2name(csound, (char *)0, S_source_code->data, (char *)"", 1);
+        std::string source_code = cxx_string_from_csound(csound, S_source_code);
         char filepath[0x500];
         {
             std::lock_guard lock(get_mutex());
             std::mt19937 mersenne_twister;
             unsigned int seed_ = std::time(nullptr);
             mersenne_twister.seed(seed_);
-            std::snprintf(filepath, 0x500, "%s/cxx_opcode_%lx.cpp", std::filesystem::temp_directory_path().c_str(), mersenne_twister());
+            std::snprintf(filepath, 0x500, "%s/cxx_opcode_%lx.cpp", std::filesystem::temp_directory_path().c_str(),
+                static_cast<unsigned long>(mersenne_twister()));
             auto file_ = fopen(filepath, "w+");
-            std::fwrite(source_code, strlen(source_code), sizeof(source_code[0]), file_);
+            std::fwrite(source_code.c_str(), source_code.size(), 1, file_);
             std::fclose(file_);
         }
         args.push_back("cxx_opcode");
@@ -192,7 +210,7 @@ public:
             // module.
             if (S_dynamic_link_libraries != nullptr) {
                 std::vector<std::string> dynamic_link_library_names;
-                auto dynamic_link_libraries = csound->strarg2name(csound, (char *)0, S_dynamic_link_libraries->data, (char *)"", 1);
+                std::string dynamic_link_libraries = cxx_string_from_csound(csound, S_dynamic_link_libraries);
                 tokenize(dynamic_link_libraries, ' ', dynamic_link_library_names);
                 for (const auto &dynamic_link_library_name : dynamic_link_library_names) {
                     void *module_handle = nullptr;
@@ -220,11 +238,11 @@ public:
             }
 #endif
             loaded_modules().push_back(module_handle);
-            csound_main_t entry_point_symbol = (csound_main_t) csound->GetLibrarySymbol(module_handle, entry_point);
+            csound_main_t entry_point_symbol = (csound_main_t) cxx_get_symbol(module_handle, entry_point.c_str());
             if (cxx_diagnostics_enabled()) {
                 csound->Message(csound, "####### cxx_compile: module_filepath:    %s\n", module_filepath);
                 csound->Message(csound, "####### cxx_compile: module_handle:      %p\n", module_handle);
-                csound->Message(csound, "####### cxx_compile: entry_point:        %s\n", entry_point);
+                csound->Message(csound, "####### cxx_compile: entry_point:        %s\n", entry_point.c_str());
                 csound->Message(csound, "####### cxx_compile: entry_point_symbol: %p\n", entry_point_symbol);
             }
             result = entry_point_symbol(csound);
@@ -275,7 +293,7 @@ public:
         // efficient.
         for (auto module_handle : loaded_modules()) {
             if (cxx_diagnostics_enabled()) csound->Message(csound, "####### cxx_invoke::init: library handle:          %p\n", module_handle);
-            auto invokable_factory = (CxxInvokable *(*)()) csound->GetLibrarySymbol(module_handle, invokable_factory_name);
+            auto invokable_factory = (CxxInvokable *(*)()) cxx_get_symbol(module_handle, invokable_factory_name);
             if (invokable_factory != nullptr) {
                 if (cxx_diagnostics_enabled()) csound->Message(csound, "####### cxx_invoke::init: found invokable factory: %p\n", invokable_factory);
                 cxx_invokable= invokable_factory();
@@ -485,7 +503,6 @@ extern "C" {
         int status = csound->AppendOpcode(csound,
                                           (char *)"cxx_compile",
                                           sizeof(CxxCompile),
-                                          0,
                                           1,
                                           (char *)"i",
                                           (char *)"SSW",
@@ -495,7 +512,6 @@ extern "C" {
         status += csound->AppendOpcode(csound,
                                           (char *)"cxx_invoke",
                                           sizeof(CxxInvoke),
-                                          0,
                                           3,
                                           (char *)"****************************************",
                                           (char *)"SkN",
@@ -505,7 +521,6 @@ extern "C" {
         status += csound->AppendOpcode(csound,
                                           (char *)"cxx_os",
                                           sizeof(CxxOperatingSystem),
-                                          0,
                                           1,
                                           (char *)"SS",
                                           (char *)"",
@@ -515,7 +530,6 @@ extern "C" {
         status += csound->AppendOpcode(csound,
                                           (char *)"cxx_raise",
                                           sizeof(CxxRaise),
-                                          0,
                                           1,
                                           (char *)"",
                                           (char *)"S",
