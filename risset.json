@@ -15,12 +15,12 @@
   "doc_folder": "doc",
   "binaries": {
     "linux": {
-      "url": "https://github.com/gogins/csound-cxx-opcodes.gitreleases/download/linux-latest/csound-cxx-opcodes-1.2.0-Linux.zip",
+      "url": "https://github.com/gogins/csound-cxx-opcodes/releases/download/linux-latest/csound-cxx-opcodes-1.2.0-Linux.zip",
       "extractpath": "lib/csound/plugins64-6.0/libcsound_cxx.so",
       "build_platform": "Unknown"
     },
     "windows": {
-      "url": "https://github.com/gogins/csound-cxx-opcodes/releases/tag/v1.2.0-windows",
+      "url": "https://github.com/gogins/csound-cxx-opcodes/releases/download/windows-latest/csound-cxx-opcodes-1.2.0-windows.zip",
       "extractpath": "bin/csound_cxx.dll",
       "build_platform": "Unknown"
     },
