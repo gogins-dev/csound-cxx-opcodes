@@ -1,0 +1,59 @@
+# Build trees and distribution staging
+build-macos/
+build-linux/
+build-windows/
+build/
+dist/
+
+# CMake / Ninja
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+.ninja_deps
+.ninja_log
+build.ninja
+compile_commands.json
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Archives
+*.zip
+
+# macOS
+.DS_Store
+
+# Doxygen output (regenerate with `doxygen`)
+doc/html/
+doc/latex/
