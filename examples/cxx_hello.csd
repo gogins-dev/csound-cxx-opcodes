@@ -74,6 +74,13 @@ struct Hello : public CxxInvokableBase {
         *outputs[1] = multiplied;
         return OK;
     }
+    int kontrol(CSOUND *csound, MYFLT **outputs, MYFLT **inputs) override {
+        return OK;
+    }
+    int noteoff(CSOUND *csound) override {
+        return OK;
+    }
+
 };
 
 extern "C" {
@@ -87,7 +94,7 @@ extern "C" {
 }}
 
 if strcmp(gS_os, "macOS") == 0 then
-gi_result cxx_compile "csound_main", gS_source_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -stdlib=libc++ -I/usr/local/include/csound -I/Library/Frameworks/CsoundLib64.framework/Versions/6.0/Headers -I. -lpthread"
+gi_result cxx_compile "csound_main", gS_source_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -stdlib=libc++ -I/Users/michaelgogins/csound-cxx-opcodes/cxx-opcodes -I/usr/local/include/csound -I/Library/Frameworks/CsoundLib64.framework/Versions/7.0/Headers -I. -lpthread"
 endif
 
 if strcmp(gS_os, "Linux") == 0 then

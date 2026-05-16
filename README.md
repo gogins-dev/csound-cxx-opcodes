@@ -346,9 +346,15 @@ cxx_raise S_signal_name
 
 3. Copy the built plugin from `dist/bin/` into your Csound plugin directory 
    (for example `OPCODE6DIR64` for Csound 7), or load it with 
-   `--opcode-lib=/path/to/libcsound_cxx.dylib` (adjust the filename for your OS).
+   `--opcode-lib=/path/to/libcsound_cxx.dylib` (adjust the filename for your 
+   OS).
 
-4. Test by executing `csound examples/cxx_example.csd`.
+# Testing
+
+Validate your installation or build by executing in the terminal: 
+`csound cxx_hello.csd`. You can also install or build the 
+Synthesis Toolkit in C++ and run `csound cxx_example.csd`, which creates a 
+Csound stereo reverb opcode using the STK NRev class.
 
 # Credits
 

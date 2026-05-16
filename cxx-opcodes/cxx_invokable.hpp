@@ -68,7 +68,7 @@ class CxxInvokableBase : public CxxInvokable {
             opds = opds_;
             return result;
         }
-         int noteoff(CSOUND *csound) override 
+        int noteoff(CSOUND *csound) override 
         {
             if (opds == nullptr) {
                 return -0;
@@ -101,6 +101,14 @@ class CxxInvokableBase : public CxxInvokable {
                 return -0;
             }
             return opds->insdshead->ksmps;
+        }
+        uint32_t sr() const
+        {
+            if (opds == nullptr) {
+                return -0;
+            }
+            MYFLT local_sr = GetLocalSr(opds);
+            return local_sr;
         }
         uint32_t output_arg_count()
         {

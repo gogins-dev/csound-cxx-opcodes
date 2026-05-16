@@ -43,6 +43,7 @@
 #include <csdl.h>
 #include <csignal>
 #include <OpcodeBaseAC.hpp>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #if (defined(__linux__) || defined(__unix__) || defined(_POSIX_VERSION))
@@ -181,11 +182,11 @@ public:
         char filepath[0x500];
         {
             std::lock_guard lock(get_mutex());
-            std::mt19937 mersenne_twister;
-            unsigned int seed_ = std::time(nullptr);
-            mersenne_twister.seed(seed_);
-            std::snprintf(filepath, 0x500, "%s/cxx_opcode_%lx.cpp", std::filesystem::temp_directory_path().c_str(),
-                static_cast<unsigned long>(mersenne_twister()));
+            static uint64_t compile_serial = 0;
+            auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+            std::snprintf(filepath, 0x500, "%s/cxx_opcode_%llx_%llx.cpp", std::filesystem::temp_directory_path().c_str(),
+                static_cast<unsigned long long>(now),
+                static_cast<unsigned long long>(++compile_serial));
             auto file_ = fopen(filepath, "w+");
             std::fwrite(source_code.c_str(), source_code.size(), 1, file_);
             std::fclose(file_);
@@ -235,6 +236,7 @@ public:
             if (module_handle == nullptr) {
                     auto error_message = dlerror();
                     csound->Message(csound, "Error: dlerror: %s\n", error_message);
+                    return NOTOK;
             }
 #endif
             loaded_modules().push_back(module_handle);
@@ -244,6 +246,11 @@ public:
                 csound->Message(csound, "####### cxx_compile: module_handle:      %p\n", module_handle);
                 csound->Message(csound, "####### cxx_compile: entry_point:        %s\n", entry_point.c_str());
                 csound->Message(csound, "####### cxx_compile: entry_point_symbol: %p\n", entry_point_symbol);
+            }
+            if (entry_point_symbol == nullptr) {
+                csound->Message(csound, "Error: cxx_compile could not find entry point symbol \"%s\" in %s\n",
+                    entry_point.c_str(), module_filepath);
+                return NOTOK;
             }
             result = entry_point_symbol(csound);
         }

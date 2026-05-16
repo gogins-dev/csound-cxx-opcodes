@@ -501,7 +501,7 @@ static bool diagnostics_enabled = true;
 /**
  * Adapts the Synthesis Toolkit in C++'s "NRev" class for use directly in Csound.
  */
-#include <stk/NRev.h>
+#include <NRev.h>
 #include "cxx_invokable.hpp"
 #include <csdl.h>
 #include <cstdio>
@@ -520,8 +520,8 @@ class InvokableReverb : public CxxInvokableBase {
         int init(CSOUND *csound, OPDS *opds, MYFLT **outputs, MYFLT **inputs) override {
             if (diagnostics_enabled) csound->Message(csound, ">>>>>>> InvokableReverb::init....\\n");
             int result = OK;
-            reverberator_left.setSampleRate(csound->GetSr(csound));
-            reverberator_right.setSampleRate(csound->GetSr(csound));
+            reverberator_left.setSampleRate(sr());
+            reverberator_right.setSampleRate(sr());
             result = CxxInvokableBase::init(csound, opds, outputs, inputs);
             MYFLT T60 = *(inputs[0]);
             reverberator_left.setT60(T60);
@@ -577,7 +577,7 @@ extern "C" {
 gS_os, gS_macros cxx_os
 
 if strcmp(gS_os, "macOS") == 0 then
-i_result cxx_compile "reverb_main", S_reverb_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -DUSE_DOUBLE -stdlib=libc++ -I/usr/local/include/csound -I/Library/Frameworks/CsoundLib64.framework/Versions/6.0/Headers -I/opt/homebrew/Cellar/stk/4.6.2/include -I. -L/opt/homebrew/lib -lm -lpthread", "libstk.dylib"
+i_result cxx_compile "reverb_main", S_reverb_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -DUSE_DOUBLE -stdlib=libc++ -I/Users/michaelgogins/csound-cxx-opcodes/cxx-opcodes -I/usr/local/include/csound -I/Library/Frameworks/CsoundLib64.framework/Versions/7.0/Headers -I/Users/michaelgogins/csound-cxx-opcodes/examples/stk/include -I. /Users/michaelgogins/csound-cxx-opcodes/examples/stk/src/libstk.a -L/opt/homebrew/lib -lm -lpthread"
 endif
 if strcmp(gS_os, "Linux") == 0 then
 i_result cxx_compile "reverb_main", S_reverb_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -I/usr/local/include -I/usr/local/include/csound -I. -L/usr/lib -L/usr/local/lib -L/usr/lib/gcc/x86_64-linux-gnu/9 -L/home/mkg/csound-cxx-opcodes/examples -lm -lpthread", "libstk.so"
@@ -784,7 +784,7 @@ extern "C" int score_generator(CSOUND *csound) {
 }}
 
 if strcmp(gS_os, "macOS") == 0 then
-i_result cxx_compile "score_generator", S_score_generator_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -DUSE_DOUBLE -stdlib=libc++ -I/usr/local/include/csound -I/Library/Frameworks/CsoundLib64.framework/Versions/6.0/Headers -I/opt/homebrew/Cellar/eigen/3.4.0_1/include -lpthread -lm"
+i_result cxx_compile "score_generator", S_score_generator_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -DUSE_DOUBLE -stdlib=libc++ -I/usr/local/include/csound -I/Library/Frameworks/CsoundLib64.framework/Versions/7.0/Headers -I/opt/homebrew/Cellar/eigen/5.0.1/include -lpthread -lm"
 endif
 if strcmp(gS_os, "Linux") == 0 then
 i_result cxx_compile "score_generator", S_score_generator_code, "g++ -g -v -O2 -fPIC -shared -std=c++17 -I/usr/local/include/csound -I/usr/include/eigen3 -lpthread -lm -lstk"
